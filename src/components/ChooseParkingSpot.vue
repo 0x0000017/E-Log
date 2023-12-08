@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="container">
+  <div v-if="isLoggedIn">
+    <div class="container  animate__animated animate__fadeIn ">
       <div class="heading">
         <h2>Choose Parking Spot</h2>
         <p>Vehicle Type: {{ vehicleType == 'motorcycle' ? 'MOTORCYCLE' : 'CAR' }}</p>
@@ -11,7 +11,10 @@
             <tbody>
               <tr v-for="(row, rowIndex) in spotsInRows" :key="rowIndex">
                 <td v-for="(spot, colIndex) in row" :key="colIndex">
-                  <router-link :class="'parkCell'" :to="{ name: 'submitForm', params: { spot: spot[0] } }">
+                  <router-link 
+                  :class="'parkCell'" 
+                  :to="getLinkTo(spot[0])"
+                  >
                     <div :class="['parking-cell', { 'occupied': parkingStatus[rowIndex * 2 + colIndex] === 'OCCUPIED' }]">
                       <div class="spot-container">
                         <h5 class="spot-number">{{ spot[0] }}</h5>
@@ -41,9 +44,17 @@
       </div>
     </div>
   </div>
+
+  <div v-else class="bypassLogin">
+    <div class="center-container">
+      <p style="font-size: 1.2rem; font-weight: 700;">You are not logged in. Please <router-link to="/login" @click="redirectToLogin">log in</router-link> to access the main menu.</p>
+    </div>
+  </div>
+
 </template>
 
 <script>
+import { mapState } from 'vuex';
   export default {
     data() {
       return {
@@ -55,6 +66,7 @@
     },
 
     computed: {
+      ...mapState(['isLoggedIn']),
       spotsInRows() {
         const numberOfRows = 7;
         const spotsPerRow = 2;
@@ -75,6 +87,11 @@
 
         return statusArray;
       },
+
+      isSpotOccupied() {
+        return spotNumber => this.parkingStatus[this.spots.indexOf(spotNumber)] === 'OCCUPIED';
+      },
+
     },
 
     mounted() {
@@ -116,6 +133,13 @@
       handleCellClick(spot) {
           console.log(`Selected parking spot: ${this.vehicleType} ${spot}`);
       },
+      getLinkTo(spotNumber) {
+        if (this.isSpotOccupied(spotNumber)) {
+          return '#';
+        } else {
+          return { name: 'submitForm', params: { spot: spotNumber } };
+        }
+      },
     },
   };
 </script>
@@ -145,7 +169,7 @@
 
   .parking-cell {
     background-color: #45a049;
-    /* width: 5vw; */
+    width: 43vw;
     height: 50px;
     color: white;
     text-align: center;
@@ -186,6 +210,17 @@
   .status-text {
     font-size: 10px;
     margin-left: auto;
+  }
+
+  .bypassLogin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .center-container {
+    text-align: center;
   }
 
 

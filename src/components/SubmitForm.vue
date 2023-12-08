@@ -1,5 +1,6 @@
 <template>
-  <div class="container animate__animated animate__fadeIn">
+  <div v-if="isLoggedIn">
+    <div class="container animate__animated animate__fadeIn">
     <h3 class="pageTitle">Parking Form</h3>
     <h4 class="subtitle"> {{ vehicleType == 'motorcycle' ? 'Motorcycle' : 'Car' }} Slot No. {{ spot }}</h4>
     
@@ -29,20 +30,27 @@
       </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+    </div>
+
+    <div class="prevPanel">
+          <div class="row">
+            <div class="col"></div>
+            <div class="col">
+              <router-link to="/choose-vehicle">
+                <button class="btn btn-primary custom-btn circleBtn">
+                  <img :src="require('@/assets/back-btn.png')" alt="">
+                </button>
+              </router-link>
+            </div>
+            <div class="col"></div>
+          </div>
+    </div>
   </div>
 
-  <div class="prevPanel">
-        <div class="row">
-          <div class="col"></div>
-          <div class="col">
-            <router-link to="/choose-vehicle">
-              <button class="btn btn-primary custom-btn circleBtn">
-                <img :src="require('@/assets/back-btn.png')" alt="">
-              </button>
-            </router-link>
-          </div>
-          <div class="col"></div>
-        </div>
+  <div v-else class="bypassLogin">
+    <div class="center-container">
+      <p style="font-size: 1.2rem; font-weight: 700;">You are not logged in. Please <router-link to="/login" @click="redirectToLogin">log in</router-link> to access the main menu.</p>
+    </div>
   </div>
 
 </template>
@@ -89,11 +97,26 @@
     background-color: #515478;
     border-radius: 25px;
   }
+
+  .bypassLogin {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .center-container {
+    text-align: center;
+  }
 </style>
 
 <script>
+import { mapState } from 'vuex';
 import Swal from 'sweetalert2';
 export default {
+  computed: {
+    ...mapState(['isLoggedIn']),
+  },
   data() {
     return {
       formData: {
@@ -133,7 +156,7 @@ export default {
             showCancelButton: false,
             confirmButtonText: 'OK',
           }).then(() => {
-            this.$router.push('/');
+            this.$router.push('/menu');
           });
 
         } else {
@@ -163,6 +186,6 @@ export default {
   mounted() {
     this.vehicleType = this.$route.params.vehicleType;
     this.spot = this.$route.params.spot;
-  }
+  },
 };
 </script>
