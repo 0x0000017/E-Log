@@ -78,7 +78,6 @@ import { mapState } from 'vuex';
 
       parkingStatus() {
         if (!Array.isArray(this.fetchedData) || this.fetchedData.length === 0) {
-          // If fetchedData is not an array or is empty, return an array of 'VACANT'
           return new Array(this.spots.length).fill('VACANT');
         }
 
@@ -213,7 +212,7 @@ import { mapState } from 'vuex';
     font-size: 25px;
     font-weight: 700;
     margin-right: 1vw;
-    margin-bottom: 4px; /* Adjust as needed */
+    margin-bottom: 4px;
   }
 
   .status-text {

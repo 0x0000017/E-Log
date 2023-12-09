@@ -277,7 +277,7 @@ import { format } from 'date-fns';
     .container {
       display: flex;
       flex-direction: column;
-      min-height: 100vh; /* Set the container to at least the height of the viewport */
+      min-height: 100vh;
     }
     .prevPanel {
         display: flex;

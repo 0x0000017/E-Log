@@ -1,7 +1,6 @@
 <template>
     <div>
       <div class="container  animate__animated animate__fadeIn ">
-        <!-- Your existing content -->
         <div class="row">
           <div class="col"></div>
           <div class="col">
@@ -31,40 +30,13 @@
 
 <script scoped>
     export default {
-    data() {
-        return {
-        loginUsername: '',
-        loginPassword: '',
-        error: '',
-        };
-    },
-    methods: {
-        async login() {
-        try {
-            const response = await fetch('http://localhost/api/api.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: "login",
-                username: this.loginUsername,
-                password: this.loginPassword,
-            }),
-            });
-
-            if (response.ok) {
-            this.$router.push('/menu');
-            } else {
-            const errorData = await response.json();
-            this.error = errorData.error || 'Invalid username or password';
-            }
-        } catch (error) {
-            console.error('Login failed:', error);
-            this.error = 'Login failed. Please try again.';
-        }
+        data() {
+            return {
+            loginUsername: '',
+            loginPassword: '',
+            error: '',
+            };
         },
-    },
     };
 </script>
 <style scoped>
