@@ -66,7 +66,6 @@
   .parkingForm {
     margin-left: 5vw;
     margin-right: 5vw;
-    margin-top: 5vw;
   }
   .parkingForm .btn {
     margin-top: 5vw;
@@ -107,6 +106,12 @@
 
   .center-container {
     text-align: center;
+  }
+
+  @media screen and (max-width: 768px){
+  .parkingForm {
+    margin-top: 2vw;
+  }
   }
 </style>
 

@@ -6,7 +6,7 @@
         <p>Vehicle Type: {{ vehicleType == 'motorcycle' ? 'MOTORCYCLE' : 'CAR' }}</p>
       </div>
       <div class="row mt-5 mb-5">
-        <div class="col-md-8 offset-md-2">
+        <div class="col">
           <table class="table table-dark">
             <tbody>
               <tr v-for="(row, rowIndex) in spotsInRows" :key="rowIndex">
@@ -77,16 +77,26 @@ import { mapState } from 'vuex';
       },
 
       parkingStatus() {
+        if (!Array.isArray(this.fetchedData) || this.fetchedData.length === 0) {
+          // If fetchedData is not an array or is empty, return an array of 'VACANT'
+          return new Array(this.spots.length).fill('VACANT');
+        }
+
         let statusArray = new Array(this.spots.length).fill('');
+
         this.fetchedData.forEach((row) => {
-          const spotIndex = this.spots.indexOf(row.p_spot);
-          if (spotIndex !== -1) {
-            statusArray[spotIndex] = row.status === 'OCCUPIED' ? 'OCCUPIED' : 'VACANT';
+          if (row && typeof row.p_spot !== 'undefined' && typeof row.status !== 'undefined') {
+            const spotIndex = this.spots.indexOf(row.p_spot);
+
+            if (spotIndex !== -1) {
+              statusArray[spotIndex] = row.status === 'OCCUPIED' ? 'OCCUPIED' : 'VACANT';
+            }
           }
         });
 
         return statusArray;
       },
+
 
       isSpotOccupied() {
         return spotNumber => this.parkingStatus[this.spots.indexOf(spotNumber)] === 'OCCUPIED';
@@ -169,7 +179,6 @@ import { mapState } from 'vuex';
 
   .parking-cell {
     background-color: #45a049;
-    width: 43vw;
     height: 50px;
     color: white;
     text-align: center;
@@ -222,6 +231,12 @@ import { mapState } from 'vuex';
   .center-container {
     text-align: center;
   }
+
+  @media screen and (max-width: 760px) {
+    .parking-cell {
+      width: 43vw;
+  }
+}
 
 
 </style>

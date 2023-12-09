@@ -65,8 +65,7 @@
             <p><span class="label">Plate Number: </span>{{ selectedLog.p_plateNo }}</p>
           </div>
           <div class="col">
-            <p><span class="label">Time: </span>{{ selectedLog.p_time }}</p>
-            <p><span class="label">Date: </span>{{ selectedLog.p_date }}</p>
+            <p><span class="label">Time In: </span>{{ selectedLog.p_date }} {{ selectedLog.p_time }}</p>
             <p><span class="label">Status: </span> <span :class="{ 'active': selectedLog.status == 1, 'inactive': selectedLog.status == 0 }"> {{ selectedLog.status == 1 ? 'ACTIVE' : 'INACTIVE' }} </span></p>
           </div>
         </div>
@@ -141,8 +140,8 @@
                   <p><span class="label">Plate Number: </span>{{ selectedHistory.p_plateNo }}</p>
                 </div>
                 <div class="col">
-                  <p><span class="label">Time: </span>{{ selectedHistory.p_time }}</p>
-                  <p><span class="label">Date: </span>{{ selectedHistory.p_date }}</p>
+                  <p><span class="label">Time In: </span>{{ selectedHistory.p_date }} {{ selectedHistory.p_time }}</p>
+                  <p><span class="label">Time Out: </span>{{ selectedHistory.p_out }}</p>
                   <p><span class="label">Status: </span> <span :class="{ 'active': selectedHistory.status == 1, 'inactive': selectedHistory.status == 0 }"> {{ selectedHistory.status == 1 ? 'ACTIVE' : 'INACTIVE' }} </span></p>
                 </div>
               </div>
@@ -168,6 +167,7 @@
   
 <script>
 import { mapState } from 'vuex';
+import { format } from 'date-fns';
   export default {
     data() {
       return {
@@ -175,15 +175,19 @@ import { mapState } from 'vuex';
         history: [],
         selectedLog: null,
         selectedHistory: null,
+        currentDate: null,
       };
     },
+
     computed: {
     ...mapState(['isLoggedIn']),
     },
+
     mounted() {
       this.fetchLogs();
       this.fetchInactiveLogs();
     },
+
     methods: {
       async fetchLogs() {
         try {
@@ -229,30 +233,30 @@ import { mapState } from 'vuex';
 
       async deleteLog(index) {
         const logId = this.logs[index].p_id;
-        console.log(`Deleting log at item # ${logId}`);
         try {
         
+          const currentDate = format(new Date(), 'yyyy-MM-dd h:mm a');
+          const response = await fetch('http://localhost/api/api.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'updateStatus',
+              p_id: logId,
+              status: 0,
+              out: currentDate,
+            }),
+          });
 
-        const response = await fetch('http://localhost/api/api.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'updateStatus',
-            p_id: logId,
-            status: 0,
-          }),
-        });
+          if (response.ok) {
+            const responseData = await response.json();
+            console.log(responseData.message);
+            this.fetchLogs();
 
-        if (response.ok) {
-          const responseData = await response.json();
-          console.log(responseData.message);
-          this.fetchLogs();
-
-            } else {
-                console.error('Failed to update status');
-            }
+              } else {
+                  console.error('Failed to update status');
+              }
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -264,12 +268,6 @@ import { mapState } from 'vuex';
 
       showHistoryDetails(history) {
         this.selectedHistory = history;
-      },
-
-      hoverEffect() {
-      },
-
-      resetEffect() {
       },
     },
   };
@@ -311,9 +309,6 @@ import { mapState } from 'vuex';
       font-size: 0.9rem;
     }
     .actionCol {
-      display: flex;
-      justify-content: center;
-      align-items: start;
       text-align: center;
     }
 
@@ -332,11 +327,6 @@ import { mapState } from 'vuex';
       justify-content: end;
       align-items: start;
     }
-
-    .modal {
-      margin-top: 15vw;
-    }
-
     .modal-content {
       background-color: #22222F;
       color: #fff;

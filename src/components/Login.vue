@@ -82,16 +82,12 @@ import { mapMutations } from 'vuex';
 </script>
   
   <style scoped>
-  .container {
-    background-image: linear-gradient(to bottom, #22222f, #2d2d38, #393941, #45454a, #515153);
-  }
   .login-container {
     max-width: 400px;
     margin: auto;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-top: 20vw;
   }
   
   .form-group {
@@ -121,6 +117,12 @@ import { mapMutations } from 'vuex';
 
   .center-container {
     text-align: center;
+  }
+
+  @media screen and  (max-width: 768px) {
+    .login-container {
+      margin-top: 20vw;
+    }
   }
   </style>
   
