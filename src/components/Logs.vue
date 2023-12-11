@@ -9,15 +9,17 @@
         </div>
         <div class="col"></div>
         <div class="col rightSide">
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#history">History</button>
+          <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#history">History</button> -->
+          <input v-model="searchTerm" class="form-control mb-4" id="tableSearch" type="text" placeholder="Search...">
         </div>
       </div>
+      
   
       <div class="small-table">
-        <table class="table table-dark logtable">
+        <table class="table table-dark logtable" ref="pdfTable">
           <thead>
             <tr>
-              <th scope="col">Item No.</th>
+              <th scope="col" class="" >Date</th>
               <th scope="col">Slot No.</th>
               <th scope="col">Name</th>
               <th scope="col">Status</th>
@@ -25,20 +27,30 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(log, index) in logs" :key="index" @click="showDetails(log)">
-              <th scope="row">{{ index + 1 }}</th>
+            <tr v-for="(log, index) in filteredLogs" :key="index" @click="showDetails(log)">
+              <th scope="row"  :class="{ 'hide-item-number': hideItemNumber }" >{{ log.p_date }}</th>
               <td>{{ log.p_spot }}</td>
               <td>{{ log.p_name }}</td>
               <td :style="{ color: log.status === 1 ? 'green' : 'red' }">
                 {{ log.status == 1 ? 'ACTIVE' : 'INACTIVE' }}</td>
               <td class="actionCol">
-                  <button @click="deleteLog(index)" class="btn btn-danger btn-sm" :disabled="log.status == 0">
-                      <i class="far fa-trash-alt"></i>
+                  <button @click="deleteLog(index)" :class="['btn', 'btn-sm', { 'btn-danger': log.status == 0, 'btn-success': log.status == 1 }]" :disabled="log.status == 0">
+                    <i :class="{'fas fa-trash-alt': log.status == 0, 'fas fa-check': log.status == 1}"></i>
                   </button>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="exportPdf mt-2">
+        <div class="row">
+          <div class="col-5"></div>
+          <div class="col-5"></div>
+          <div class="col rightSide">
+            <button type="button" class="btn btn-primary btn-sm exportBtn" @click="exportToPDF">Export to PDF</button>
+          </div>
+        </div>
       </div>
 
       <div class="details mt-5">
@@ -66,6 +78,7 @@
           </div>
           <div class="col">
             <p><span class="label">Time In: </span>{{ selectedLog.p_date }} {{ selectedLog.p_time }}</p>
+            <p v-if="selectedLog.p_out"><span class="label">Time Out: </span>{{ selectedLog.p_out }}</p>
             <p><span class="label">Status: </span> <span :class="{ 'active': selectedLog.status == 1, 'inactive': selectedLog.status == 0 }"> {{ selectedLog.status == 1 ? 'ACTIVE' : 'INACTIVE' }} </span></p>
           </div>
         </div>
@@ -87,7 +100,7 @@
       
       </div>
 
-      <div class="modal fade" id="history" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <!-- <div class="modal fade" id="history" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -153,7 +166,7 @@
           </div>
         </div>
       </div>
-      </div>
+      </div> -->
   </div>
 
   <div v-else class="bypassLogin">
@@ -166,8 +179,11 @@
 </template>
   
 <script>
-import { mapState } from 'vuex';
-import { format } from 'date-fns';
+  import { mapState } from 'vuex';
+  import { format } from 'date-fns';
+  import html2canvas from 'html2canvas';
+  import jsPDF from 'jspdf';
+
   export default {
     data() {
       return {
@@ -176,11 +192,19 @@ import { format } from 'date-fns';
         selectedLog: null,
         selectedHistory: null,
         currentDate: null,
+        searchTerm: "",
       };
     },
 
     computed: {
-    ...mapState(['isLoggedIn']),
+      ...mapState(['isLoggedIn']),
+      filteredLogs() {
+        const lowerSearchTerm = this.searchTerm.toLowerCase();
+        return this.logs.filter((log) =>
+          log.p_name.toLowerCase().includes(lowerSearchTerm) ||
+          log.p_spot.toString().toLowerCase().includes(lowerSearchTerm)
+        );
+      },
     },
 
     mounted() {
@@ -191,7 +215,7 @@ import { format } from 'date-fns';
     methods: {
       async fetchLogs() {
         try {
-          const response = await fetch('http://localhost/api/api.php?status=1', {
+          const response = await fetch('http://localhost/api/api.php', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -269,6 +293,29 @@ import { format } from 'date-fns';
       showHistoryDetails(history) {
         this.selectedHistory = history;
       },
+
+      exportToPDF() {
+        const pdfTable = this.$refs.pdfTable;
+        const actionColumnHeaders = pdfTable.querySelectorAll('.logtable th:nth-child(5), .logtable td:nth-child(5)');
+        actionColumnHeaders.forEach(header => header.style.display = 'none');
+        const currentDate = new Date().toLocaleString();
+
+        html2canvas(pdfTable, { scale: 1 })
+          .then(canvas => {
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const scaleFactor = 0.9;
+            const newWidth = pdf.internal.pageSize.width * scaleFactor;
+            const newHeight = (canvas.height * newWidth) / canvas.width;
+            const xPosition = (pdf.internal.pageSize.width - newWidth) / 2;
+            let  yPosition = 10;
+            pdf.text(`Logs as of ${currentDate}`, 10, yPosition);
+            yPosition += 10;
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xPosition, yPosition, newWidth, newHeight);
+            actionColumnHeaders.forEach(header => header.style.display = '');
+            pdf.save('LOGS.pdf');
+          });
+      },
+
     },
   };
 </script>
@@ -345,8 +392,24 @@ import { format } from 'date-fns';
       height: 100vh;
     }
 
-  .center-container {
-    text-align: center;
+    .center-container {
+      text-align: center;
+    }
+
+    .exportBtn {
+      border-radius: 20px;
+    }
+
+    @media screen and (min-width: 768px) {
+      .exportBtn {
+        width: 15vw;
+      }
+    }
+
+    @media screen and (max-width: 320px) {
+    .hide-item-number {
+      display: none;
+    }
   }
 </style>
   
