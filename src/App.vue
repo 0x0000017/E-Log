@@ -1,5 +1,12 @@
 <template>
-  <router-view/>
+  <div class="row">
+    <div class="col-2">
+      <SideBar />
+    </div>
+    <div class="col">
+      <router-view/>
+    </div>
+  </div>
 </template>
 
 <style>
@@ -11,11 +18,23 @@
     -moz-osx-font-smoothing: grayscale;
     color: #F6F6F9;
     background-image: linear-gradient(to bottom, #22222f, #2d2d38, #393941, #45454a, #515153);
-    height: 100vh;
+    min-height: 100vh;
   }
 
   .container {
-    padding-top: 10vw;
+    padding-top: 2vw;
   }
   
 </style>
+
+<script>
+import SideBar from './components/SideBar.vue';
+
+export default {
+  name: 'App',
+  components: {
+    SideBar,
+  }
+}
+
+</script>

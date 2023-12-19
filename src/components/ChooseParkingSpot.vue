@@ -130,14 +130,15 @@ import { mapState } from 'vuex';
         data.forEach((row) => {
           const spotIndex = this.spots.indexOf(row.p_spot);
           if (spotIndex !== -1) {
+            // Update this condition based on your API response
             statusArray[spotIndex] = row.status === 1 ? 'OCCUPIED' : 'VACANT';
             console.log(`Spot ${this.spots[spotIndex]}: ${statusArray[spotIndex]}`);
-
           }
         });
         this.parkingStatus.splice(0, this.parkingStatus.length, ...statusArray);
         console.log('Updated parking status array (#110):', statusArray);
       },
+
 
       handleCellClick(spot) {
           console.log(`Selected parking spot: ${this.vehicleType} ${spot}`);
