@@ -20,31 +20,10 @@
       <div class="mb-3">
         <input v-model="formData.plateNo" type="text" placeholder="Plate #:" class="form-control" id="plateNo" required>
       </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="basic-addon1">Time</span>
-        <input v-model="formData.parkTime" type="time" placeholder="Park Time:" class="form-control" id="parkTime" required>
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="basic-addon1">Date</span>
-        <input v-model="formData.parkDate" type="date" placeholder="Date:" class="form-control" id="parkDate" required>
-      </div>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
     </div>
 
-    <div class="prevPanel">
-          <div class="row">
-            <div class="col"></div>
-            <div class="col">
-              <router-link to="/choose-vehicle">
-                <button class="btn btn-primary custom-btn circleBtn">
-                  <img :src="require('@/assets/back-btn.png')" alt="">
-                </button>
-              </router-link>
-            </div>
-            <div class="col"></div>
-          </div>
-    </div>
   </div>
 
   <div v-else class="bypassLogin">
@@ -131,8 +110,6 @@ export default {
         vbrand: '',
         vmodel: '',
         plateNo: '',
-        parkTime: '',
-        parkDate: '',
         spot: this.$route.params.spot,
         vtype: this.$route.params.vehicleType
       },

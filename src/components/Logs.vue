@@ -9,12 +9,29 @@
         </div>
         <div class="col"></div>
         <div class="col rightSide">
-          <!-- <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#history">History</button> -->
           <input v-model="searchTerm" class="form-control mb-4" id="tableSearch" type="text" placeholder="Search...">
         </div>
       </div>
-      
-      <h5>Motorcycle</h5>
+      <div class="row mb-2">
+        <div class="col">
+          <h5>Motorcycle</h5>
+        </div>
+        <div class="col"></div>
+        <div class="col rightSide">
+          <div class="dropdown mb-2">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Filter
+            </button>
+            
+            <ul class="dropdown-menu">
+              <li><button class="btn dropdown-item" @click="applyFilterMotorcycles('all')">All</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterMotorcycles('today')">Today</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterMotorcycles('thisWeek')">This Week</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterMotorcycles('thisMonth')">This Month</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <div class="small-table">
         <table class="table table-dark logtable" ref="pdfTable">
           <thead>
@@ -27,7 +44,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(motorcycle, index) in motorcycle" :key="index" @click="showDetails(motorcycle)">
+            <tr v-for="(motorcycle, index) in filteredMotorcycles" :key="index" @click="showDetails(motorcycle)">
               <th scope="row" >{{ motorcycle.p_date }}</th>
               <td>{{ motorcycle.p_spot }}</td>
               <td>{{ motorcycle.p_name }}</td>
@@ -44,7 +61,25 @@
       </div>
 
 
-      <h5>Cars</h5>
+      <div class="row mb-2">
+        <div class="col">
+          <h5>Cars</h5>
+        </div>
+        <div class="col"></div>
+        <div class="col rightSide">
+          <div class="dropdown mb-2">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Filter
+            </button>
+            <ul class="dropdown-menu">
+              <li><button class="btn dropdown-item" @click="applyFilterCars('all')">All</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterCars('today')">Today</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterCars('thisWeek')">This Week</button></li>
+              <li><button class="btn dropdown-item" @click="applyFilterCars('thisMonth')">This Month</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <div class="small-table">
         <table class="table table-dark logtable" ref="pdfTable">
           <thead>
@@ -57,7 +92,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(car, index) in filteredLogs" :key="index" @click="showDetails(car)">
+            <tr v-for="(car, index) in filteredCars" :key="index" @click="showDetails(car)">
               <th scope="row" >{{ car.p_date }}</th>
               <td>{{ car.p_spot }}</td>
               <td>{{ car.p_name }}</td>
@@ -128,7 +163,7 @@
   
 <script>
   import { mapState } from 'vuex';
-  import { format } from 'date-fns';
+  import { isSameDay, isSameWeek, isSameMonth, format } from 'date-fns';
   import html2canvas from 'html2canvas';
   import jsPDF from 'jspdf';
 
@@ -137,10 +172,11 @@
       return {
         cars: [],
         motorcycle: [],
+        filterMotorcycles: 'all',
+        filterCars: 'all',
         selectedLog: null,
         selectedHistory: null,
         currentDate: null,
-        searchTerm: "",
       };
     },
 
@@ -218,50 +254,48 @@
         }
       },
 
-      deleteLog(index, vehicleType) {
-        let log;
-        let logsArray;
-        const currentDate = format(new Date(), 'yyyy-MM-dd h:mm a');
+      async deleteLog(index, vehicleType) {
+        try {
+          let log;
+          let logsArray;
 
-        if (vehicleType === 'motorcycle') {
-          log = this.motorcycle[index];
-          logsArray = this.motorcycle;
-        } else if (vehicleType === 'car') {
-          log = this.filteredLogs[index];
-          logsArray = this.filteredLogs;
-        } else {
-          console.error('Invalid vehicle type');
-          return;
-        }
+          const currentDate = format(new Date(), 'yyyy-MM-dd h:mm a');
+          const apiUrl = 'http://localhost/api/api.php';
 
-        const apiUrl = 'http://localhost/api/api.php';
+          if (vehicleType === 'motorcycle') {
+            log = this.motorcycle[index];
+            logsArray = this.motorcycle;
+          } else if (vehicleType === 'car') {
+            log = this.cars[index];
+            logsArray = this.cars;
+          } else {
+            console.error('Invalid vehicle type');
+            return;
+          }
 
-        fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(
-            { 
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
               action: 'updateStatus',
               p_id: log.p_id,
               status: 0,
               out: currentDate,
             }),
-        })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            logsArray.splice(index, 1, { ...log, status: 0 });
-            console.log('Log deleted successfully');
-          })
-          .catch(error => {
-            console.error('Error deleting log', error);
           });
+
+          if (response.ok) {
+            const data = await response.json();
+            logsArray.splice(index, 1, { ...log, status: 0 });
+            console.log('Log deleted successfully:', data.message);
+          } else {
+            console.error('Error deleting log: Network response was not ok');
+          }
+        } catch (error) {
+          console.error('Error deleting log:', error);
+        }
       },
 
       showDetails(details) {
@@ -294,6 +328,12 @@
           });
       },
 
+      applyFilterMotorcycles(filter) {
+        this.filterMotorcycles = filter;
+      },
+      applyFilterCars(filter) {
+        this.filterCars = filter;
+      },
     },
 
     mounted() {
@@ -303,13 +343,35 @@
 
     computed: {
       ...mapState(['isLoggedIn']),
-      filteredLogs() {
-        const lowerSearchTerm = this.searchTerm.toLowerCase();
-        return this.cars.filter((car) =>
-          car.p_name.toLowerCase().includes(lowerSearchTerm) ||
-          car.p_spot.toString().toLowerCase().includes(lowerSearchTerm)
-        );
+
+      filteredMotorcycles() {
+        const currentDate = new Date();
+        switch (this.filterMotorcycles) {
+          case 'today':
+            return this.motorcycle.filter(m => isSameDay(new Date(m.p_date), currentDate));
+          case 'thisWeek':
+            return this.motorcycle.filter(m => isSameWeek(new Date(m.p_date), currentDate));
+          case 'thisMonth':
+            return this.motorcycle.filter(m => isSameMonth(new Date(m.p_date), currentDate));
+          default:
+            return this.motorcycle;
+        }
       },
+
+      filteredCars() {
+        const currentDate = new Date();
+        switch (this.filterCars) {
+          case 'today':
+            return this.cars.filter(car => isSameDay(new Date(car.p_date), currentDate));
+          case 'thisWeek':
+            return this.cars.filter(car => isSameWeek(new Date(car.p_date), currentDate));
+          case 'thisMonth':
+            return this.cars.filter(car => isSameMonth(new Date(car.p_date), currentDate));
+          default:
+            return this.cars;
+        }
+      },
+
     },
   };
 </script>
