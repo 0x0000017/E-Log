@@ -9,9 +9,10 @@
         </div>
         <div class="col"></div>
         <div class="col rightSide">
-          <input v-model="searchTerm" class="form-control mb-4" id="tableSearch" type="text" placeholder="Search...">
+          <input v-model="searchQuery" class="form-control mb-4" id="tableSearch" type="text" placeholder="Search...">
         </div>
       </div>
+      
       <div class="row mb-2">
         <div class="col">
           <h5>Motorcycle</h5>
@@ -19,7 +20,7 @@
         <div class="col"></div>
         <div class="col rightSide">
           <div class="dropdown mb-2">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               Filter
             </button>
             
@@ -33,7 +34,7 @@
         </div>
       </div>
       <div class="small-table">
-        <table class="table table-dark logtable" ref="pdfTable">
+        <table class="table table-dark logtable" ref="pdfTableMotorcycles">
           <thead>
             <tr>
               <th scope="col" class="" >Date</th>
@@ -59,7 +60,7 @@
           </tbody>
         </table>
       </div>
-
+      
 
       <div class="row mb-2">
         <div class="col">
@@ -68,7 +69,7 @@
         <div class="col"></div>
         <div class="col rightSide">
           <div class="dropdown mb-2">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               Filter
             </button>
             <ul class="dropdown-menu">
@@ -81,7 +82,7 @@
         </div>
       </div>
       <div class="small-table">
-        <table class="table table-dark logtable" ref="pdfTable">
+        <table class="table table-dark logtable" ref="pdfTableCars">
           <thead>
             <tr>
               <th scope="col" class="" >Date</th>
@@ -307,23 +308,55 @@
       },
 
       exportToPDF() {
-        const pdfTable = this.$refs.pdfTable;
-        const actionColumnHeaders = pdfTable.querySelectorAll('.logtable th:nth-child(5), .logtable td:nth-child(5)');
-        actionColumnHeaders.forEach(header => header.style.display = 'none');
+        const pdfTableMotorcycles = this.$refs.pdfTableMotorcycles;
+        const pdfTableCars = this.$refs.pdfTableCars;
+        const actionColumnHeadersMotorcycles = pdfTableMotorcycles.querySelectorAll('.logtable th:nth-child(5), .logtable td:nth-child(5)');
+        const actionColumnHeadersCars = pdfTableCars.querySelectorAll('.logtable th:nth-child(5), .logtable td:nth-child(5)');
+
+        actionColumnHeadersMotorcycles.forEach(header => header.style.display = 'none');
+        actionColumnHeadersCars.forEach(header => header.style.display = 'none');
+
         const currentDate = new Date().toLocaleString();
 
-        html2canvas(pdfTable, { scale: 1 })
-          .then(canvas => {
+        const createCanvas = (pdfTable) => {
+          return html2canvas(pdfTable, { scale: 1 })
+            .then(canvas => {
+              const pdf = new jsPDF('p', 'mm', 'a4');
+              const scaleFactor = 0.9;
+              const newWidth = pdf.internal.pageSize.width * scaleFactor;
+              const newHeight = (canvas.height * newWidth) / canvas.width;
+
+              return {
+                canvas,
+                newWidth,
+                newHeight,
+              };
+            });
+        };
+
+        const motorcyclesCanvasPromise = createCanvas(pdfTableMotorcycles);
+        const carsCanvasPromise = createCanvas(pdfTableCars);
+
+        Promise.all([motorcyclesCanvasPromise, carsCanvasPromise])
+          .then(([motorcyclesCanvasInfo, carsCanvasInfo]) => {
             const pdf = new jsPDF('p', 'mm', 'a4');
-            const scaleFactor = 0.9;
-            const newWidth = pdf.internal.pageSize.width * scaleFactor;
-            const newHeight = (canvas.height * newWidth) / canvas.width;
-            const xPosition = (pdf.internal.pageSize.width - newWidth) / 2;
-            let  yPosition = 10;
-            pdf.text(`Logs as of ${currentDate}`, 10, yPosition);
+
+            const xPosition = (pdf.internal.pageSize.width - motorcyclesCanvasInfo.newWidth) / 2;
+            let yPosition = 10;
+
+            pdf.text(`Motorcycles Logs as of ${currentDate}`, 10, yPosition);
             yPosition += 10;
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xPosition, yPosition, newWidth, newHeight);
-            actionColumnHeaders.forEach(header => header.style.display = '');
+            pdf.addImage(motorcyclesCanvasInfo.canvas.toDataURL('image/png'), 'PNG', xPosition, yPosition, motorcyclesCanvasInfo.newWidth, motorcyclesCanvasInfo.newHeight);
+
+            pdf.addPage();
+            yPosition = 10;
+            pdf.text(`Cars Logs as of ${currentDate}`, 10, yPosition);
+            yPosition += 10;
+            pdf.addImage(carsCanvasInfo.canvas.toDataURL('image/png'), 'PNG', xPosition, yPosition, carsCanvasInfo.newWidth, carsCanvasInfo.newHeight);
+
+            actionColumnHeadersMotorcycles.forEach(header => header.style.display = '');
+            actionColumnHeadersCars.forEach(header => header.style.display = '');
+
             pdf.save('LOGS.pdf');
           });
       },
@@ -356,6 +389,7 @@
           default:
             return this.motorcycle;
         }
+        
       },
 
       filteredCars() {

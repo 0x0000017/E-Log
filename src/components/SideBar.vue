@@ -1,5 +1,5 @@
 <template>
-    <div class="sidebarMenu">
+    <div class="sidebarMenu ">
         <div class="sideBar">
             <div class="logoPanel">
                 <img :src="require('@/assets/logo-gc.png')" alt="" class="logo-ph img-fluid mb-5">
@@ -17,7 +17,7 @@
                             <li><router-link to="/choose-parking-spot/motorcycle"  class="dropdown-item"><i class="fas fa-motorcycle"></i>Motorcycle</router-link></li>
                         </ul>
                     <router-link v-if="!isLoggedIn" to="/login" class="list-group-item list-group-item-action"><i class="fas fa-user"></i>Login</router-link>
-                    <a v-if="isLoggedIn" @click="logout" class="list-group-item list-group-item-action"><i class="fas fa-right-from-bracket"></i>Logout</a>
+                    <a v-if="isLoggedIn" @click="confirmLogout" class="list-group-item list-group-item-action"><i class="fas fa-right-from-bracket"></i>Logout</a>
                 </div>
             </div>
         </div>
@@ -58,20 +58,36 @@
     .fas {
         padding-right: 1vw;
     }
+
 </style>
 
 
 <script>
 import { mapState } from 'vuex';
 import { mapMutations } from 'vuex';
-
 import Swal from 'sweetalert2';
+
 export default {
     computed: {
       ...mapState(['isLoggedIn']),
       ...mapMutations(['setLoggedIn']),
     },
     methods: {
+        confirmLogout() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You will be logged out!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, log me out!',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                this.logout();
+                }
+            });
+        },
         logout() {
             this.$store.commit('setLoggedIn', false);
             Swal.fire({

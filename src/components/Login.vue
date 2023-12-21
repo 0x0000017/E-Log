@@ -64,7 +64,7 @@ import { mapMutations } from 'vuex';
                 title: 'Login Successful',
                 text: 'Redirecting ...',
               });
-            this.$router.push('/menu');
+            this.$router.push('/');
             } else {
             const errorData = await response.json();
             this.error = errorData.error || 'Invalid username or password';

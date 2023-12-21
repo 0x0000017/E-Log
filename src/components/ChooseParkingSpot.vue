@@ -34,7 +34,7 @@
       <div class="row">
         <div class="col"></div>
         <div class="col">
-          <router-link to="/choose-vehicle">
+          <router-link to="/">
             <button class="btn btn-primary custom-btn circleBtn" @mouseover="hoverEffect" @mouseleave="resetEffect">
               <img :src="require('@/assets/back-btn.png')" alt="">
             </button>

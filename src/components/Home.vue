@@ -5,21 +5,8 @@
           <div class="col"></div>
           <div class="col">
             <img :src="require('@/assets/logo-gc.png')" alt="" class="img-fluid mb-5">
-            <h1 class="title">GC PARKING</h1>
-            <h2 class="subTitle">Your vehicle is our priority</h2>
-
-            <div v-if="!isLoggedIn">
-                <router-link to="/login">
-                    <button class="btn btn-primary">GET STARTED</button>
-                </router-link>
-            </div>
-
-            <div v-else>
-                <router-link to="/menu">
-                    <button class="btn btn-primary">GET STARTED</button>
-                </router-link>
-            </div>
-
+            <h1 class="title">Park Hub</h1>
+            <h3 class="subTitle">Your vehicle is our priority</h3>
           </div>
           <div class="col"></div>
         </div>
@@ -42,6 +29,7 @@
 <style scoped>
 
     .container {
+        margin-top: 10vw;
         text-align: center;
     }
 
@@ -68,7 +56,7 @@
     }
     
     .title {
-        font-size: 50px;
+        font-size: 5rem;
     }
 
     .login-container {
