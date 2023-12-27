@@ -26,11 +26,12 @@
 
 <style scoped>
     .sidebarMenu {
-        max-height: 100%;
+        overflow-y: auto;
+        min-height: 100%;
         overflow-x: hidden;
     }
     .sideBar {
-        height: 100vh;
+        min-height: 100vh;
         background-color: #4C4C4F;
     }
     .logoPanel {

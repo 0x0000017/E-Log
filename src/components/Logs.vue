@@ -7,10 +7,6 @@
         <div class="col">
           <h2 class="mb-5">Logs</h2>
         </div>
-        <div class="col"></div>
-        <div class="col rightSide">
-          <input v-model="searchQuery" class="form-control mb-4" id="tableSearch" type="text" placeholder="Search...">
-        </div>
       </div>
       
       <div class="row mb-2">
@@ -32,6 +28,13 @@
             </ul>
           </div>
         </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <input v-model="searchQueryMotorcycles" class="form-control mb-4" type="text" placeholder="Search Motorcycles...">
+        </div>
+        <div class="col"></div>
+        <div class="col"></div>
       </div>
       <div class="small-table">
         <table class="table table-dark logtable" ref="pdfTableMotorcycles">
@@ -81,6 +84,13 @@
           </div>
         </div>
       </div>
+      <div class="row">
+        <div class="col">
+          <input v-model="searchQueryCars" class="form-control mb-4" type="text" placeholder="Search Cars...">
+        </div>
+        <div class="col"></div>
+        <div class="col"></div>
+      </div>
       <div class="small-table">
         <table class="table table-dark logtable" ref="pdfTableCars">
           <thead>
@@ -120,7 +130,7 @@
       </div>
 
       <div class="details mt-5">
-        <div class="row mb-3">
+        <div class="row mb-5">
           <div class="col">
             <h3>Details</h3>
           </div>
@@ -178,6 +188,8 @@
         selectedLog: null,
         selectedHistory: null,
         currentDate: null,
+        searchQueryMotorcycles: '',
+        searchQueryCars: '',
       };
     },
 
@@ -228,7 +240,7 @@
         const logId = this.logs[index].p_id;
         try {
         
-          const currentDate = format(new Date(), 'yyyy-MM-dd h:mm a');
+          const currentDate = format(new Date(), 'yyyy-MM-dd hh:mm a');
           const response = await fetch('http://localhost/api/api.php', {
             method: 'POST',
             headers: {
@@ -238,7 +250,6 @@
               action: 'updateStatus',
               p_id: logId,
               status: 0,
-              out: currentDate,
             }),
           });
 
@@ -379,33 +390,62 @@
 
       filteredMotorcycles() {
         const currentDate = new Date();
+        let filtered = this.motorcycle;
+
         switch (this.filterMotorcycles) {
           case 'today':
-            return this.motorcycle.filter(m => isSameDay(new Date(m.p_date), currentDate));
+            filtered = filtered.filter(m => isSameDay(new Date(m.p_date), currentDate));
+            break;
           case 'thisWeek':
-            return this.motorcycle.filter(m => isSameWeek(new Date(m.p_date), currentDate));
+            filtered = filtered.filter(m => isSameWeek(new Date(m.p_date), currentDate));
+            break;
           case 'thisMonth':
-            return this.motorcycle.filter(m => isSameMonth(new Date(m.p_date), currentDate));
+            filtered = filtered.filter(m => isSameMonth(new Date(m.p_date), currentDate));
+            break;
           default:
-            return this.motorcycle;
+            break;
         }
-        
+        if (this.searchQueryMotorcycles) {
+          const query = this.searchQueryMotorcycles.toLowerCase();
+          filtered = filtered.filter(m =>
+            m.p_date.toLowerCase().includes(query) ||
+            m.p_spot.toString().includes(query) ||
+            m.p_name.toLowerCase().includes(query) ||
+            (m.status === 1 ? 'active' : 'inactive').includes(query)
+          );
+        }
+
+        return filtered;
       },
 
       filteredCars() {
         const currentDate = new Date();
+        let filtered = this.cars;
+
         switch (this.filterCars) {
           case 'today':
-            return this.cars.filter(car => isSameDay(new Date(car.p_date), currentDate));
+            filtered = filtered.filter(car => isSameDay(new Date(car.p_date), currentDate));
+            break;
           case 'thisWeek':
-            return this.cars.filter(car => isSameWeek(new Date(car.p_date), currentDate));
+            filtered = filtered.filter(car => isSameWeek(new Date(car.p_date), currentDate));
+            break;
           case 'thisMonth':
-            return this.cars.filter(car => isSameMonth(new Date(car.p_date), currentDate));
+            filtered = filtered.filter(car => isSameMonth(new Date(car.p_date), currentDate));
+            break;
           default:
-            return this.cars;
+            break;
         }
-      },
-
+            if (this.searchQueryCars) {
+            const query = this.searchQueryCars.toLowerCase();
+            filtered = filtered.filter(car =>
+              car.p_date.toLowerCase().includes(query) ||
+              car.p_spot.toString().includes(query) ||
+              car.p_name.toLowerCase().includes(query) ||
+              (car.status === 1 ? 'active' : 'inactive').includes(query)
+            );
+          }
+          return filtered;
+        },
     },
   };
 </script>
@@ -432,6 +472,7 @@
       margin-top: 10px;
       border-radius: 10px;
       font-size: 0.9rem;
+      margin-bottom: 5vw;
     }
     .actionCol {
       text-align: center;
